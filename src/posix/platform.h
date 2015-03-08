@@ -39,13 +39,6 @@
 # define atomic_or(p,v)   __sync_or_and_fetch((p), (v))
 #endif
 
-#ifdef MAKE_STATIC
-# define CONSTRUCTOR
-#else
-# define CONSTRUCTOR __attribute__ ((constructor))
-#endif
-#define VISIBLE     __attribute__((visibility("default")))
-
 /*
  * Android does not provide spinlocks.
  * See: http://code.google.com/p/android/issues/detail?id=21622

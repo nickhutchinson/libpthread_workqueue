@@ -28,6 +28,7 @@
 
 #include "platform.h"
 #include "private.h"
+#include "thread_rt.h"
 
 void ptwq_set_current_thread_priority(int priority  __attribute__ ((unused)))
 {    

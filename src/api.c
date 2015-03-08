@@ -42,23 +42,9 @@ valid_workq(pthread_workqueue_t workq)
         return (0);
 }
 
-int VISIBLE CONSTRUCTOR
-pthread_workqueue_init_np(void)
+static void
+_pthread_workqueue_init2(void)
 {
-    static int pwq_initialized = 0;
-
-    /* This is not reentrant, but is used to make this function idempotent
-       to support static linking.
-
-       Programs which are (or can be) be statically linked against
-       this library should call pthread_workqueue_init_np() early in
-       their main() function. If the program is dynamically linked,
-       this function will be called twice; once by the dynamic linker
-       as a constructor, and once within main().
-     */
-    if (pwq_initialized)
-        return (0);
-
 #ifdef NDEBUG
     DEBUG_WORKQUEUE = 0;
 #else
@@ -73,19 +59,28 @@ pthread_workqueue_init_np(void)
         PWQ_SPIN_THREADS =  atoi(getenv("PWQ_SPIN_THREADS"));
 #endif
 
-    if (manager_init() < 0)
-        return (-1);
+    if (manager_init() < 0) {
+        fprintf(stderr, "FATAL: pthread_workqueue failed to initialise");
+        abort();
+    }
 
-    pwq_initialized = 1;
     dbg_puts("pthread_workqueue library initialized");
+}
 
+int
+pthread_workqueue_init_np(void)
+{
+    static pthread_once_t pred = PTHREAD_ONCE_INIT;
+    pthread_once(&pred, _pthread_workqueue_init2);
     return (0);
 }
 
-int VISIBLE
+int
 pthread_workqueue_create_np(pthread_workqueue_t *workqp,
                             const pthread_workqueue_attr_t * attr)
 {
+    (void)pthread_workqueue_init_np();
+
     pthread_workqueue_t workq;
 
     if ((attr != NULL) && ((attr->sig != PTHREAD_WORKQUEUE_ATTR_SIG) ||
@@ -113,7 +108,7 @@ pthread_workqueue_create_np(pthread_workqueue_t *workqp,
     return (0);
 }
 
-int VISIBLE
+int
 pthread_workqueue_additem_np(pthread_workqueue_t workq,
                      void (*workitem_func)(void *), void * workitem_arg,
                      pthread_workitem_handle_t * itemhandlep, 
@@ -138,7 +133,7 @@ pthread_workqueue_additem_np(pthread_workqueue_t workq,
     return (0);
 }
 
-int VISIBLE
+int
 pthread_workqueue_attr_init_np(pthread_workqueue_attr_t *attr)
 {
     attr->queueprio = WORKQ_DEFAULT_PRIOQUEUE;
@@ -147,7 +142,7 @@ pthread_workqueue_attr_init_np(pthread_workqueue_attr_t *attr)
     return (0);
 }
 
-int VISIBLE
+int
 pthread_workqueue_attr_destroy_np(pthread_workqueue_attr_t *attr)
 {
     if (attr->sig == PTHREAD_WORKQUEUE_ATTR_SIG)
@@ -156,7 +151,7 @@ pthread_workqueue_attr_destroy_np(pthread_workqueue_attr_t *attr)
         return (EINVAL); /* Not an attribute struct. */
 }
 
-int VISIBLE
+int
 pthread_workqueue_attr_getovercommit_np(
         const pthread_workqueue_attr_t *attr, int *ocommp)
 {
@@ -167,7 +162,7 @@ pthread_workqueue_attr_getovercommit_np(
         return (EINVAL); /* Not an attribute struct. */
 }
 
-int VISIBLE
+int
 pthread_workqueue_attr_setovercommit_np(pthread_workqueue_attr_t *attr,
                            int ocomm)
 {
@@ -178,7 +173,7 @@ pthread_workqueue_attr_setovercommit_np(pthread_workqueue_attr_t *attr,
         return (EINVAL);
 }
 
-int VISIBLE
+int
 pthread_workqueue_attr_getqueuepriority_np(
         pthread_workqueue_attr_t *attr, int *qpriop)
 {
@@ -189,7 +184,7 @@ pthread_workqueue_attr_getqueuepriority_np(
         return (EINVAL);
 }
 
-int VISIBLE
+int
 pthread_workqueue_attr_setqueuepriority_np(
         pthread_workqueue_attr_t *attr, int qprio)
 {
@@ -208,13 +203,13 @@ pthread_workqueue_attr_setqueuepriority_np(
         return (EINVAL);
 }
 
-unsigned long VISIBLE
+unsigned long
 pthread_workqueue_peek_np(const char *key)
 {
     return manager_peek(key);
 }
 
-void VISIBLE
+void
 pthread_workqueue_suspend_np(void)
 {
 #ifndef _WIN32
@@ -222,7 +217,7 @@ pthread_workqueue_suspend_np(void)
 #endif
 }
 
-void VISIBLE
+void
 pthread_workqueue_resume_np(void)
 {
 #ifndef _WIN32

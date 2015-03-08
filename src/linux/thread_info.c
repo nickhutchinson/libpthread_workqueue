@@ -28,6 +28,7 @@
 
 #include "platform.h"
 #include "private.h"
+#include "thread_info.h"
 
 /* 
  

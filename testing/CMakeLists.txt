@@ -32,11 +32,10 @@ if(UNIX)
 endif()
 
 add_executable(test_api_pthread_workqueue ${API})
-target_link_libraries(test_api_pthread_workqueue pthread_workqueue)
-set_target_properties(test_api_pthread_workqueue PROPERTIES DEBUG_POSTFIX "D")
+target_link_libraries(test_api_pthread_workqueue pthread_workqueue_shared)
 
 add_executable(test_latency_pthread_workqueue ${LATENCY})
-target_link_libraries(test_latency_pthread_workqueue pthread_workqueue)
+target_link_libraries(test_latency_pthread_workqueue pthread_workqueue_shared)
 
 if(NOT WIN32)
 

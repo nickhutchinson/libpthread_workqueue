@@ -19,11 +19,6 @@
 #include <errno.h>
 #include <process.h>
 
-/* Instead of __attribute__ ((constructor)), use DllMain() */
-#define CONSTRUCTOR	  /* */
-
-#define VISIBLE __declspec(dllexport)
-
 # define __func__ __FUNCTION__
 # define inline __inline
 # define bool BOOL

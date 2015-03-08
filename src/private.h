@@ -30,6 +30,8 @@
 #ifndef _PTWQ_PRIVATE_H
 #define _PTWQ_PRIVATE_H 1
 
+#include "config/config.h"
+
 #include <errno.h>
 #include <limits.h>
 #include <signal.h>

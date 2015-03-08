@@ -30,10 +30,12 @@
 #ifndef _PTHREAD_WORKQUEUE_H
 #define _PTHREAD_WORKQUEUE_H
 
+#ifndef PWQ_EXPORT
 #if _WIN32
-#define _PWQ_EXPORT __declspec(dllexport)
+#define PWQ_EXPORT __declspec(dllexport)
 #else
-#define _PWQ_EXPORT
+#define PWQ_EXPORT
+#endif
 #endif
 
 typedef struct _pthread_workqueue * pthread_workqueue_t;
@@ -41,10 +43,10 @@ typedef void *                      pthread_workitem_handle_t;
 
 /* Pad size to 64 bytes. */
 typedef struct {
-   unsigned int sig;
-   int queueprio;
-   int overcommit;
-   unsigned int pad[13];
+    unsigned int sig;
+    int queueprio;
+    int overcommit;
+    unsigned int pad[13];
 } pthread_workqueue_attr_t;
 
 /* Work queue priority attributes. */
@@ -54,48 +56,65 @@ typedef struct {
 #define WORKQ_BG_PRIOQUEUE         3
 
 #if defined(__cplusplus)
-	extern "C" {
+extern "C" {
 #endif
-		
-int _PWQ_EXPORT pthread_workqueue_create_np(pthread_workqueue_t * workqp,
-               const pthread_workqueue_attr_t * attr);
 
-int _PWQ_EXPORT pthread_workqueue_additem_np(pthread_workqueue_t workq,
-            void (*workitem_func)(void *), void * workitem_arg,
-            pthread_workitem_handle_t * itemhandlep, unsigned int *gencountp);
+PWQ_EXPORT
+int pthread_workqueue_create_np(pthread_workqueue_t *workqp,
+                                const pthread_workqueue_attr_t *attr);
 
-int _PWQ_EXPORT pthread_workqueue_attr_init_np(pthread_workqueue_attr_t * attrp);
+PWQ_EXPORT
+int pthread_workqueue_additem_np(pthread_workqueue_t workq,
+                                 void (*workitem_func)(void *),
+                                 void *workitem_arg,
+                                 pthread_workitem_handle_t *itemhandlep,
+                                 unsigned int *gencountp);
 
-int _PWQ_EXPORT pthread_workqueue_attr_destroy_np(pthread_workqueue_attr_t * attr);
+PWQ_EXPORT
+int pthread_workqueue_attr_init_np(pthread_workqueue_attr_t *attrp);
 
-int _PWQ_EXPORT pthread_workqueue_attr_setqueuepriority_np(pthread_workqueue_attr_t * attr,
-                   int qprio);
+PWQ_EXPORT
+int pthread_workqueue_attr_destroy_np(pthread_workqueue_attr_t *attr);
 
-int _PWQ_EXPORT pthread_workqueue_attr_getovercommit_np(
-               const pthread_workqueue_attr_t * attr, int * ocommp);
+PWQ_EXPORT
+int pthread_workqueue_attr_getqueuepriority_np(pthread_workqueue_attr_t *attr,
+                                               int *qpriop);
 
-int _PWQ_EXPORT pthread_workqueue_attr_setovercommit_np(pthread_workqueue_attr_t * attr,
-                   int ocomm);
+PWQ_EXPORT
+int pthread_workqueue_attr_setqueuepriority_np(pthread_workqueue_attr_t *attr,
+                                               int qprio);
 
-int _PWQ_EXPORT pthread_workqueue_requestconcurrency_np(pthread_workqueue_t workq,
-                   int queue, int request_concurrency);
+PWQ_EXPORT
+int pthread_workqueue_attr_getovercommit_np(
+        const pthread_workqueue_attr_t *attr, int *ocommp);
 
-int _PWQ_EXPORT pthread_workqueue_getovercommit_np(pthread_workqueue_t workq,
-                   unsigned int *ocommp);
+PWQ_EXPORT
+int pthread_workqueue_attr_setovercommit_np(pthread_workqueue_attr_t *attr,
+                                            int ocomm);
 
-void _PWQ_EXPORT pthread_workqueue_main_np(void);
+PWQ_EXPORT
+int pthread_workqueue_requestconcurrency_np(pthread_workqueue_t workq,
+                                            int queue, int request_concurrency);
 
-int _PWQ_EXPORT pthread_workqueue_init_np(void);
+PWQ_EXPORT
+int pthread_workqueue_getovercommit_np(pthread_workqueue_t workq,
+                                       unsigned int *ocommp);
+
+PWQ_EXPORT
+void pthread_workqueue_main_np(void);
+
+PWQ_EXPORT
+int pthread_workqueue_init_np(void);
 
 /* NOTE: these are not part of the Darwin API */
-unsigned long _PWQ_EXPORT pthread_workqueue_peek_np(const char *);
-void _PWQ_EXPORT pthread_workqueue_suspend_np(void);
-void _PWQ_EXPORT pthread_workqueue_resume_np(void);
+PWQ_EXPORT
+unsigned long pthread_workqueue_peek_np(const char *);
+PWQ_EXPORT
+void pthread_workqueue_suspend_np(void);
+PWQ_EXPORT
+void pthread_workqueue_resume_np(void);
 
 #if defined(__cplusplus)
-	}
+}
 #endif
-			
-#undef _PWQ_EXPORT
-
-#endif  /* _PTHREAD_WORKQUEUE_H */
+#endif /* _PTHREAD_WORKQUEUE_H */

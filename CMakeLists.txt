@@ -14,8 +14,12 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 2.8.7)
 project(pthread_workqueue C)
+
+include(CheckIncludeFile)
+
+find_package(Threads REQUIRED)
 
 if (NOT CMAKE_BUILD_TYPE)
     set (CMAKE_BUILD_TYPE MinSizeRel)
@@ -33,6 +37,7 @@ source_group(Headers FILES ${headers})
 file(GLOB sources src/*.h src/*.c)
 
 include_directories(include src)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 if(WIN32)
     file(GLOB win32_sources src/windows/*.h src/windows/*.c)
@@ -46,7 +51,8 @@ if (UNIX)
     list(APPEND sources "${posix_sources}")
 
     add_definitions(-DHAVE_ERR_H=1 -D_XOPEN_SOURCE=600 -D_GNU_SOURCE)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -fvisibility=hidden")
+    add_definitions(-std=c99 -fvisibility=hidden
+        -Wall -Wextra -Wmissing-prototypes)
 endif ()
 
 if (LINUX)
@@ -57,35 +63,39 @@ endif ()
 source_group(Sources FILES ${sources})
 
 #///////////////////////////////////////////////////////////////////////////////
-#library (static or shared)
-option(STATIC_WORKQUEUE "Enable to build libpthread_workqueue as static lib" OFF)
-if(STATIC_WORKQUEUE)
-    message("-- building libpthread_workqueue as static lib")
-    add_definitions(-DMAKE_STATIC)
-    add_library(pthread_workqueue STATIC ${sources} ${headers})
-else()
-    add_library(pthread_workqueue SHARED ${sources} ${headers})
-endif()
-if(NOT WIN32)
-    target_link_libraries(pthread_workqueue pthread)
-endif()
-if(LINUX)
-    target_link_libraries(pthread_workqueue rt)
-endif()
 
-set_target_properties(pthread_workqueue PROPERTIES
-    DEBUG_POSTFIX "D"
-    DEFINE_SYMBOL LIBPTHREAD_WORKQUEUE_EXPORTS)
+if (NOT WIN32)
+    set(CONFIG_EPILOGUE
+        "#define PWQ_EXPORT extern __attribute__((visibility(\"default\")))"
+    )
+endif ()
+configure_file(config/config.h.in "${CMAKE_CURRENT_BINARY_DIR}/config/config.h")
+
+add_library(pthread_workqueue_shared SHARED ${sources} ${headers})
+add_library(pthread_workqueue_static STATIC ${sources} ${headers})
+if (NOT WIN32)
+    set_property(TARGET pthread_workqueue_static APPEND PROPERTY
+        COMPILE_FLAGS -fPIC)
+endif ()
+
+set_target_properties(pthread_workqueue_shared PROPERTIES
+    SOVERSION 0 VERSION 0.9.2)
+
+foreach (target pthread_workqueue_shared pthread_workqueue_static)
+    target_link_libraries(${target} ${CMAKE_THREAD_LIBS_INIT})
+    if(LINUX)
+        target_link_libraries(${target} rt -Wl,-z,defs)
+    endif()
+    set_target_properties(${target} PROPERTIES
+        DEBUG_POSTFIX "D"
+        OUTPUT_NAME pthread_workqueue)
+endforeach()
 
 #///////////////////////////////////////////////////////////////////////////////
 #tests
-option(WORKQUEUE_TESTS "Enable to build tests for libpthread_workqueue" OFF)
-if(WORKQUEUE_TESTS)
-    message("-- Adding tests for libpthread_workqueue")
-    add_subdirectory(testing)
-endif()
+add_subdirectory(testing)
 
-install(TARGETS pthread_workqueue
+install(TARGETS pthread_workqueue_static pthread_workqueue_shared
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib)
 
