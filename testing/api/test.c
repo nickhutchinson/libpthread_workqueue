@@ -37,8 +37,7 @@ static int test_rounds;
 #undef dbg_printf
 #define dbg_printf(fmt,...) if (dbg) fprintf(stderr, fmt, __VA_ARGS__)
 
-void additem(pthread_workqueue_t wq, void (*func)(void *), 
-             void * arg)
+static void additem(pthread_workqueue_t wq, void (*func)(void *), void *arg)
 {
 
     int rv;
@@ -49,7 +48,7 @@ void additem(pthread_workqueue_t wq, void (*func)(void *),
     dbg_puts("added item\n");
 }
 
-void 
+static void 
 mark_progress(void)
 {
     static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
@@ -64,7 +63,7 @@ mark_progress(void)
     }
 }
 
-void
+static void
 sem_up(void *arg)
 {
     dbg_puts("semaphore UP\n");
@@ -72,7 +71,7 @@ sem_up(void *arg)
     mark_progress();
 }
 
-void
+static void
 sem_down(void *arg)
 {
     dbg_puts("semaphore DOWN\n");
@@ -82,7 +81,7 @@ sem_down(void *arg)
     mark_progress();
 }
 
-void
+static void
 compute(void *arg)
 {
     int *count = (int *) arg;
@@ -108,7 +107,7 @@ compute(void *arg)
 }
 
 
-void
+static void
 sleepy(void *msg)
 {
     printf("%s\n", (char *) msg);
@@ -117,7 +116,7 @@ sleepy(void *msg)
     sleep(random() % 6);
 }
 
-void
+static void
 lazy(void *arg)
 {
     sleep(3);
@@ -125,7 +124,7 @@ lazy(void *arg)
 	work_cnt--;
 }
 
-void
+static void
 run_blocking_test(pthread_workqueue_t wq, int rounds)
 {
 	long i = 0;
@@ -137,7 +136,7 @@ run_blocking_test(pthread_workqueue_t wq, int rounds)
 		sleep(1);
 }
 
-void
+static void
 run_cond_wait_test(pthread_workqueue_t wq)
 {
 	const int rounds = 10;
@@ -153,7 +152,7 @@ run_cond_wait_test(pthread_workqueue_t wq)
 		sleep(1);
 }
 
-void
+static void
 run_load_test(pthread_workqueue_t wq)
 {
     char buf[16];
@@ -167,7 +166,7 @@ run_load_test(pthread_workqueue_t wq)
 }
 
 /* Try to overwhelm the CPU with computation requests */
-void
+static void
 run_stress_test(pthread_workqueue_t wq, int rounds)
 {
 	int i = 0;
@@ -182,7 +181,7 @@ run_stress_test(pthread_workqueue_t wq, int rounds)
 /*
  * Ensure that the library is reinitialized after fork(2) is called.
  */
-void
+static void
 run_fork_test(pthread_workqueue_t wq)
 {
 #if !defined(_WIN32)
@@ -222,7 +221,7 @@ run_fork_test(pthread_workqueue_t wq)
 #endif
 }
 
-void
+static void
 run_overcommit_test(pthread_workqueue_t wq)
 {
     sem_t sem;
@@ -258,7 +257,7 @@ run_overcommit_test(pthread_workqueue_t wq)
 }
 
 /* Test suspend and resume functions */
-void
+static void
 run_suspend_test(void)
 {
     puts("suspending..");

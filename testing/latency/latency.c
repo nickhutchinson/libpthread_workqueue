@@ -273,7 +273,7 @@ static void _gather_statistics(unsigned long queue_index)
 	return;
 }
 
-void _print_statistics()
+static void _print_statistics()
 {
 	unsigned long i, j, total_events = 0, last_percentile = 0, accumulated_percentile = 0;
         
