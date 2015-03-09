@@ -19,8 +19,6 @@ project(pthread_workqueue C)
 
 include(CheckIncludeFile)
 
-find_package(Threads REQUIRED)
-
 if (NOT CMAKE_BUILD_TYPE)
     set (CMAKE_BUILD_TYPE MinSizeRel)
 endif ()
@@ -50,7 +48,7 @@ if (UNIX)
     file(GLOB posix_sources src/posix/*.h src/posix/*.c)
     list(APPEND sources "${posix_sources}")
 
-    add_definitions(-DHAVE_ERR_H=1 -D_XOPEN_SOURCE=600 -D_GNU_SOURCE)
+    add_definitions(-D_GNU_SOURCE)
     add_definitions(-std=c99 -fvisibility=hidden
         -Wall -Wextra -Wmissing-prototypes)
 endif ()
@@ -69,22 +67,25 @@ if (NOT WIN32)
         "#define PWQ_EXPORT extern __attribute__((visibility(\"default\")))"
     )
 endif ()
+check_include_file(err.h HAVE_ERR_H)
 configure_file(config/config.h.in "${CMAKE_CURRENT_BINARY_DIR}/config/config.h")
 
-add_library(pthread_workqueue_shared SHARED ${sources} ${headers})
 add_library(pthread_workqueue_static STATIC ${sources} ${headers})
 if (NOT WIN32)
     set_property(TARGET pthread_workqueue_static APPEND PROPERTY
         COMPILE_FLAGS -fPIC)
 endif ()
 
+add_library(pthread_workqueue_shared SHARED ${sources} ${headers})
 set_target_properties(pthread_workqueue_shared PROPERTIES
     SOVERSION 0 VERSION 0.9.2)
 
 foreach (target pthread_workqueue_shared pthread_workqueue_static)
-    target_link_libraries(${target} ${CMAKE_THREAD_LIBS_INIT})
+    if (UNIX)
+        target_link_libraries(${target} -pthread)
+    endif ()
     if(LINUX)
-        target_link_libraries(${target} rt -Wl,-z,defs)
+        target_link_libraries(${target} rt)
     endif()
     set_target_properties(${target} PROPERTIES
         DEBUG_POSTFIX "D"
@@ -100,4 +101,3 @@ install(TARGETS pthread_workqueue_static pthread_workqueue_shared
     LIBRARY DESTINATION lib)
 
 install(FILES ${headers} DESTINATION include)
-
