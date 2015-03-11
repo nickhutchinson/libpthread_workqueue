@@ -62,12 +62,15 @@ source_group(Sources FILES ${sources})
 
 #///////////////////////////////////////////////////////////////////////////////
 
-if (NOT WIN32)
-    set(CONFIG_EPILOGUE
-        "#define PWQ_EXPORT extern __attribute__((visibility(\"default\")))"
-    )
-endif ()
 check_include_file(err.h HAVE_ERR_H)
+set(CONFIG_EPILOGUE
+"
+#if _WIN32
+#define PWQ_EXPORT extern __declspec(dllexport)
+#else
+#define PWQ_EXPORT extern __attribute__((visibility(\"default\")))
+#endif
+")
 configure_file(config/config.h.in "${CMAKE_CURRENT_BINARY_DIR}/config/config.h")
 
 add_library(pthread_workqueue_static STATIC ${sources} ${headers})

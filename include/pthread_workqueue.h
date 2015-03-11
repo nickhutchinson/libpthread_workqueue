@@ -32,9 +32,9 @@
 
 #ifndef PWQ_EXPORT
 #if _WIN32
-#define PWQ_EXPORT __declspec(dllexport)
+#define PWQ_EXPORT extern __declspec(dllimport)
 #else
-#define PWQ_EXPORT
+#define PWQ_EXPORT extern
 #endif
 #endif
 
