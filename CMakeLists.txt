@@ -20,7 +20,7 @@ project(pthread_workqueue C)
 include(CheckIncludeFile)
 
 if (NOT CMAKE_BUILD_TYPE)
-    set (CMAKE_BUILD_TYPE MinSizeRel)
+    set (CMAKE_BUILD_TYPE Release)
 endif ()
 
 if (CMAKE_SYSTEM_NAME MATCHES Linux)
@@ -51,6 +51,10 @@ if (UNIX)
     add_definitions(-D_GNU_SOURCE)
     add_definitions(-std=c99 -fvisibility=hidden
         -Wall -Wextra -Wmissing-prototypes)
+    if (CMAKE_BUILD_TYPE MATCHES Release)
+        # We always want debug symbols.
+        add_definitions(-g)
+    endif ()
 endif ()
 
 if (LINUX)
